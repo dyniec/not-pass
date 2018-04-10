@@ -81,19 +81,19 @@ subgraph attr(const subgraph &G, const subgraph &U, int cur_player)
     for(int e:G)
     {
       if(res.count(e))continue;
-      if(player[e]==cur_player and std::any_of(G_or[e].begin(),G_or[e].end(),[U,G](int x){return G.count(x)==1 && U.count(x)==1;}))
+      if(player[e]==cur_player and std::any_of(G_or[e].begin(),G_or[e].end(),[res,G](int x){return G.count(x)==1 && res.count(x)==1;}))
       {
         res.insert(e);
         cont=true;
       }
-      if(player[e]!=cur_player and std::all_of(G_or[e].begin(),G_or[e].end(),[U,G](int x){return implies(G.count(x)==1,U.count(x)==1);}))
+      if(player[e]!=cur_player and std::all_of(G_or[e].begin(),G_or[e].end(),[res,G](int x){return implies(G.count(x)==1,res.count(x)==1);}))
       {
         res.insert(e);
         cont=true;
       }
     }
   }
-  return res;
+  return std::move(res);
 }
 std::tuple<vertices,vertices> solve(const subgraph& G)
 //returns winning set for player 0,winning set for player 2 on graph G
@@ -102,6 +102,7 @@ std::tuple<vertices,vertices> solve(const subgraph& G)
   if(G.size()==0)return make_tuple(vertices(),vertices());
   //kopniety kwadrat 0
   //zwykly   kwadrat 1
+
   unsigned char max_prio=0;
   for(int e:G)
   {
@@ -129,6 +130,18 @@ std::tuple<vertices,vertices> solve(const subgraph& G)
     W[p]=Wp[p];
     W[1-p]=Wp[1-p]+B;
   }
+  /*
+  fprintf(stderr,"For vertices: ");
+  for(int e:G)
+    fprintf(stderr,"%d ",e);
+  fprintf(stderr,"\nPlayer 0 wins on:");
+  for(int e:W[0])
+    fprintf(stderr,"%d ",e);
+  fprintf(stderr,"\nPlayer 1 wins on:");
+  for(int e:W[1])
+    fprintf(stderr,"%d ",e);
+  fprintf(stderr,"\n\n");
+  */
   return std::move(make_tuple(W[0],W[1]));
 
 }
@@ -139,17 +152,7 @@ int main()
   for (int i=0;i<n;i++)
     full.insert(i);
   vertices p0=std::get<0>(solve(full));
-  /*
-  vertices v;
-  v.insert(0);
-  p0=attr(full,v,0);
-  */
-
-  printf("%lu\n",p0.size());
-  for(int e:p0)
-    printf("%d ",e);
-  printf("\n");
-
+  
   if(p0.count(V)==1)
     printf("0\n");
   else
