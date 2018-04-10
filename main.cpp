@@ -1,37 +1,38 @@
 #include<cstdio>
 #include<vector>
 #include<unordered_set>
+#include<set>
 #include<unordered_map>
 #include<algorithm>
 #include<utility>
 #include<tuple>
 
-std::vector<std::vector<int> > G_or,G_rev;
+std::vector<std::vector<int> > G_or;
 std::vector<bool> player;
-using subgraph=std::unordered_set<int>;
+using subgraph=std::set<int>;
 using vertices=subgraph;
 subgraph operator-(const subgraph &a, const subgraph &b)
 {
-  subgraph res;
+  subgraph result;
   for (int e:a)
   {
     if(b.count(e)==0)
-      res.insert(e);
+      result.insert(e);
   }
-  return std::move(res);
+  return std::move(result);
 }
 subgraph operator+(const subgraph &a, const subgraph &b)
 {
-  subgraph res;
+  subgraph result;
   for (int e:a)
   {
-    res.insert(e);
+    result.insert(e);
   }
   for (int e:b)
   {
-    res.insert(e);
+    result.insert(e);
   }
-  return std::move(res);
+  return std::move(result);
 }
 std::vector<unsigned char>colours;
 int n,n0,n1,m,V;
@@ -40,14 +41,12 @@ void read()
   scanf("%d%d%d",&n0,&n1,&m);
   n=n0+n1;
   G_or.resize(n);
-  G_rev.resize(n);
   colours.resize(n);
   player.resize(n);
   for(int i=0;i<n0;i++)
   {
     int v,c;
     scanf("%d%d",&v,&c);
-    //nn[v]=cnt;
     player[v]=0;
     colours[v]=c;
   }
@@ -63,7 +62,6 @@ void read()
     int a,b;
     scanf("%d%d",&a,&b);
     G_or[a].push_back(b);
-    G_rev[b].push_back(a);
   }
   scanf("%d",&V);
 }
@@ -74,26 +72,27 @@ bool implies(bool a,bool b)
 subgraph attr(const subgraph &G, const subgraph &U, int cur_player)
 {
   bool cont=true;
-  subgraph res=U;
+  vertices result=U;
+  vertices rest=G-result;
   while(cont)
   {
     cont=false;
-    for(int e:G)
+    for(int e:G-result)
     {
-      if(res.count(e))continue;
-      if(player[e]==cur_player and std::any_of(G_or[e].begin(),G_or[e].end(),[res,G](int x){return G.count(x)==1 && res.count(x)==1;}))
+      if(result.count(e))continue;
+      if(player[e]==cur_player and std::any_of(G_or[e].begin(),G_or[e].end(),[result,G](int x){return G.count(x)==1 && result.count(x)==1;}))
       {
-        res.insert(e);
+        result.insert(e);
         cont=true;
       }
-      if(player[e]!=cur_player and std::all_of(G_or[e].begin(),G_or[e].end(),[res,G](int x){return implies(G.count(x)==1,res.count(x)==1);}))
+      if(player[e]!=cur_player and std::all_of(G_or[e].begin(),G_or[e].end(),[result,G](int x){return implies(G.count(x)==1,result.count(x)==1);}))
       {
-        res.insert(e);
+        result.insert(e);
         cont=true;
       }
     }
   }
-  return std::move(res);
+  return std::move(result);
 }
 std::tuple<vertices,vertices> solve(const subgraph& G)
 //returns winning set for player 0,winning set for player 2 on graph G
